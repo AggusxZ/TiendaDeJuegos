@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lista de Productos</title>
+</head>
+<body>
+    <h1>Lista de Productos</h1>
+
+    {{#if user}}
+        <p>Bienvenido, {{user.email}}!</p>
+        {{#ifEqual user.role 'admin'}}
+            <p>Eres un administrador.</p>
+        {{/ifEqual}}
+
+        <form action="/auth/logout" method="post">
+            <button type="submit">Logout</button>
+        </form>
+    {{/if}}
+
+    <ul>
+        {{#each products}}
+            <li>
+                <p>Nombre: {{this.name}}</p>
+                <p>Precio: {{this.price}}</p>
+                <p>Categoría: {{this.category}}</p>
+            </li>
+        {{/each}} 
+    </ul>
+
+    <div>
+        {{#if hasNextPage}}
+            <a href="{{nextLink}}">Siguiente</a>
+        {{/if}}
+        {{#if hasPrevPage}}
+            <a href="{{prevLink}}">Anterior</a>
+        {{/if}}
+    </div>
+</body>
+</html>
+
+
