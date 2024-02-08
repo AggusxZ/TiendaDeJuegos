@@ -3,6 +3,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
+const config = require('../config/config');
 
 const configurePassport = () => {
     // Serialización y Deserialización
@@ -48,8 +49,8 @@ const configurePassport = () => {
 
     // Estrategia GitHub
     passport.use(new GitHubStrategy({
-        clientID: 'Iv1.9938af0a2b205cfc',
-        clientSecret: 'fb6a85198cd43c0f8d248dc7489c86a30f2ba477',
+        clientID: config.githubClientId,
+        clientSecret: config.githubClientSecret,
         callbackURL: 'http://localhost:8080/auth/github/callback',
         scope: ['user:email']
     },
@@ -82,6 +83,8 @@ const configurePassport = () => {
 };
 
 module.exports = configurePassport;
+
+
 
 
 
