@@ -1,4 +1,5 @@
 const Product = require('../models/product.model');
+const ProductDTO = require('../dtos/productDto');
 
 class ProductDao {
   async addProduct(productData) {
@@ -20,12 +21,14 @@ class ProductDao {
 
   async getProducts() {
     try {
-      return await Product.find({}, '_id name price category');
+        const products = await Product.find({}, '_id name price category');
+        const productDTOs = products.map(product => new ProductDTO(product.name, product.price, product.category));
+        return productDTOs;
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
-      return [];
+        console.error('Error al obtener los productos:', error);
+        return [];
     }
-  }
+  } 
 
   async getProductById(id) {
     try {

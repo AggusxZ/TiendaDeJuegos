@@ -1,18 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { isAuthenticated } = require('../middlewares/authorizationMiddleware');
 
-router.get('/current', (req, res) => {
-    console.log('Ruta /current accedida');
-    console.log('Estado de autenticación:', req.isAuthenticated());
-    console.log('Usuario autenticado:', req.user);
+const UserDAO = require('../daos/userDao');
+const UserDTO = require('../dtos/userDto');
 
-    if (req.isAuthenticated()) {
-        const { email, role } = req.user;
-        const userInfo = { email, role };
-        res.json({ user: userInfo });
-    } else {
-        res.status(401).json({ error: 'No hay usuario autenticado' });
+const userDAO = new UserDAO();
+
+// Ruta para obtener la información del usuario actual
+router.get('/current', isAuthenticated, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const currentUser = await userDAO.getUserById(userId);
+
+        const userDTO = new UserDTO(currentUser.email, currentUser.role);
+
+        res.json({ user: userDTO });
+    } catch (error) {
+        console.error('Error al obtener el usuario actual:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
 module.exports = router;
+
+
+
+

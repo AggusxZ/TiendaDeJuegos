@@ -12,4 +12,5 @@ router.get('/', (req, res) => {
   res.redirect('/products');
 });
 
+
 module.exports = router;

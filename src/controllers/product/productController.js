@@ -1,4 +1,4 @@
-const productDao = require('../../daos/productDao');
+const productRepository = require('../../repositories/productRepository');
 
 const renderProductsView = async (req, res) => {
   try {
@@ -8,7 +8,7 @@ const renderProductsView = async (req, res) => {
     }
 
     const { limit = 10, page = 1, sort, query } = req.query;
-    const products = await productDao.getProducts();
+    const products = await productRepository.getProducts();
     console.log(products);
     let filteredProducts = [...products]; 
 
@@ -69,7 +69,7 @@ const getProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const { pid } = req.params;
-    const product = await productDao.getProductById(parseInt(pid, 10));
+    const product = await productRepository.getProductById(parseInt(pid, 10));
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
@@ -84,8 +84,29 @@ const getProductById = async (req, res) => {
 const addProduct = async (req, res) => {
   try {
     const newProduct = req.body;
-    await productDao.addProduct(newProduct);
+    await productRepository.addProduct(newProduct);
     return res.status(201).json({ message: 'Product added successfully' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedProductData = req.body;
+    const updatedProduct = await productRepository.updateProduct(id, updatedProductData);
+    return res.status(200).json({ message: 'Product updated successfully', updatedProduct });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await productRepository.deleteProduct(id);
+    return res.status(200).json({ message: 'Product deleted successfully' });
   } catch (error) {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -95,5 +116,7 @@ module.exports = {
   getProducts,
   renderProductsView, 
   getProductById,
-  addProduct
+  addProduct,
+  updateProduct,
+  deleteProduct
 };

@@ -1,5 +1,6 @@
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
+const CartDTO = require('../dtos/cartDto');
 const uuid = require('uuid')
 
 const addToCart = async (productId, cartId) => {
@@ -26,7 +27,11 @@ const addToCart = async (productId, cartId) => {
       if (productIndex !== -1) {
         cart.products[productIndex].quantity += 1;
       } else {
-        cart.products.push({ productId: product._id, quantity: 1 });
+        cart.products.push({ 
+          productId: product._id, 
+          quantity: 1, 
+          price: product.price
+        });
       }
     }
 
@@ -38,13 +43,29 @@ const addToCart = async (productId, cartId) => {
   }
 };
 
+
 const getCartProducts = async () => {
   try {
-    
     const allCarts = await Cart.find({});
-    const productIds = allCarts.flatMap(cart => cart.products.map(product => product.productId));
-    const cartProducts = await Product.find({ _id: { $in: productIds } });
-    
+    const cartProducts = [];
+
+    for (const cart of allCarts) {
+      const products = [];
+      for (const item of cart.products) {
+        const product = await Product.findById(item.productId);
+        if (product) {
+          products.push({
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: item.quantity
+          });
+        }
+      }
+
+      cartProducts.push(new CartDTO(cart.cartId, products));
+    }
+
     return cartProducts;
   } catch (error) {
     console.error('Error al obtener productos del carrito:', error);

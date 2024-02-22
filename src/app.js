@@ -13,6 +13,7 @@ const cartsRouter = require('./routes/cartsRoutes');
 const viewsRouter = require('./routes/viewsRoutes');
 const authRouter = require('./routes/authRoutes');
 const sessionRouter = require('./routes/sessionRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const connectDB = require('./config/db');
 
@@ -53,6 +54,9 @@ const hbs = exphbs.create({
     ifEqual: function (arg1, arg2, options) {
       return arg1 === arg2 ? options.fn(this) : options.inverse(this);
     },
+    multiply: function(a, b) {
+      return a * b;
+    }
   },
 });
 
@@ -66,7 +70,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/auth', authRouter);
 app.use('/products', productsRouter);
 app.use('/api/carts', cartsRouter);
-app.use('/api/sessions', sessionRouter);
+app.use('/api', sessionRouter);
+app.use('/chat', chatRoutes);
 app.use('/', viewsRouter);
 
 // Redirección a /auth/login cuando se accede a la ruta principal
@@ -87,4 +92,5 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
+
 
