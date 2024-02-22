@@ -1,7 +1,7 @@
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
 const CartDTO = require('../dtos/cartDto');
-const uuid = require('uuid')
+const uuid = require('uuid');
 
 const addToCart = async (productId, cartId) => {
   try {
@@ -43,6 +43,14 @@ const addToCart = async (productId, cartId) => {
   }
 };
 
+const getCartById = async (cartId) => {
+  try {
+    return await Cart.findOne({ cartId }).populate('products.productId');
+  } catch (error) {
+    console.error('Error al obtener el carrito por ID:', error);
+    throw error;
+  }
+};
 
 const getCartProducts = async () => {
   try {
@@ -84,6 +92,8 @@ const getCarts = async () => {
 
 module.exports = {
   addToCart,
+  getCartById,
   getCartProducts,
   getCarts
 };
+

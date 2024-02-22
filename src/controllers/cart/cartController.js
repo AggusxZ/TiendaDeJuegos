@@ -41,6 +41,7 @@ const addToCart = async (req, res) => {
 const viewCart = async (req, res) => {
   try {
     const cartProducts = await cartRepository.getCartProducts();
+    console.log('Cart Products:', JSON.stringify(cartProducts, null, 2));
 
     if (cartProducts.length === 0) {
       console.log('Empty cart');
@@ -65,15 +66,24 @@ const viewCart = async (req, res) => {
 const purchaseCart = async (req, res) => {
   try {
     const cartId = req.params.cid;
-    const cart = await cartRepository.getCartById(cartId).populate('products.product');
+    const cart = await cartRepository.getCartById(cartId);
     if (!cart) {
       return res.status(404).json({ error: 'Cart not found' });
     }
 
+    // Verificar si cart.products está definido
+    if (!cart.products) {
+      return res.status(400).json({ error: 'Cart products not found' });
+    }
+
     let productsNotPurchased = [];
-    // Verifico el stock y actualizo el stock del producto
+    // Verificar el stock y actualizar el stock del producto
     for (const item of cart.products) {
-      const product = item.product;
+      if (!item.productId) {
+        return res.status(400).json({ error: 'Product not found in cart' });
+      }
+
+      const product = item.productId;
       const quantityInCart = item.quantity;
       if (product.stock < quantityInCart) {
         productsNotPurchased.push(product._id);
@@ -82,7 +92,7 @@ const purchaseCart = async (req, res) => {
         await product.save();
       }
     }
-    // Creo un nuevo ticket para la compra
+    // Crear un nuevo ticket para la compra
     const ticket = new Ticket({
       code: generateUniqueCode(), 
       purchase_datetime: new Date(),
@@ -90,7 +100,7 @@ const purchaseCart = async (req, res) => {
       purchaser: req.user.email,
     });
     await ticket.save();
-    // Si hay productos que no se pudieron comprar, los dejamos en el carrito
+    // Si hay productos que no se pudieron comprar, dejarlos en el carrito
     if (productsNotPurchased.length > 0) {
       cart.products = cart.products.filter(item => !productsNotPurchased.includes(item.product._id));
       await cart.save();
@@ -101,6 +111,7 @@ const purchaseCart = async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 // Función para generar un código único
 function generateUniqueCode() {
@@ -115,10 +126,12 @@ function generateUniqueCode() {
 }
 
 // Función para calcular el total de la compra
-function calculateTotal(products) {
+function calculateTotal(cart) {
   let total = 0;
-  for (const item of products) {
-    total += item.quantity * item.product.price;
+  for (const item of cart.products) {
+      if (item.product && item.product.price) { // Verifica que el producto y su precio estén definidos
+          total += item.product.price * item.quantity;
+      }
   }
   return total;
 }

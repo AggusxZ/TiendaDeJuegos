@@ -27,7 +27,17 @@ class CartRepository {
       throw error;
     }
   }
+
+  async getCartById(cartId) {
+    try {
+      return await CartDAO.getCartById(cartId);
+    } catch (error) {
+      console.error('Error al obtener el carrito por ID:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new CartRepository();
+
 
