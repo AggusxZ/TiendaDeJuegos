@@ -1,4 +1,6 @@
 const productRepository = require('../../repositories/productRepository');
+const errorCodes = require('../../utils/errorCodes');
+const errorHandler = require('../../utils/errorHandler');
 
 const renderProductsView = async (req, res) => {
   try {
@@ -72,12 +74,14 @@ const getProductById = async (req, res) => {
     const product = await productRepository.getProductById(parseInt(pid, 10));
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      const error = new Error('Product not found');
+      error.code = errorCodes.PRODUCT_NOT_FOUND;
+      throw error;
     }
 
     return res.json(product);
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    errorHandler.handleProductError(error, res);
   }
 };
 
@@ -87,7 +91,7 @@ const addProduct = async (req, res) => {
     await productRepository.addProduct(newProduct);
     return res.status(201).json({ message: 'Product added successfully' });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    errorHandler.handleProductError(error, res);
   }
 };
 
@@ -98,7 +102,7 @@ const updateProduct = async (req, res) => {
     const updatedProduct = await productRepository.updateProduct(id, updatedProductData);
     return res.status(200).json({ message: 'Product updated successfully', updatedProduct });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    errorHandler.handleProductError(error, res);
   }
 };
 
@@ -108,7 +112,7 @@ const deleteProduct = async (req, res) => {
     await productRepository.deleteProduct(id);
     return res.status(200).json({ message: 'Product deleted successfully' });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    errorHandler.handleProductError(error, res);
   }
 };
 
@@ -120,3 +124,4 @@ module.exports = {
   updateProduct,
   deleteProduct
 };
+

@@ -13,7 +13,8 @@ const cartsRouter = require('./routes/cartsRoutes');
 const viewsRouter = require('./routes/viewsRoutes');
 const authRouter = require('./routes/authRoutes');
 const sessionRouter = require('./routes/sessionRoutes');
-const chatRoutes = require('./routes/chatRoutes');
+const chatRouter = require('./routes/chatRoutes');
+const mockingRouter = require('./routes/mockingRoutes');
 
 const connectDB = require('./config/db');
 
@@ -71,8 +72,9 @@ app.use('/auth', authRouter);
 app.use('/products', productsRouter);
 app.use('/api/carts', cartsRouter);
 app.use('/api', sessionRouter);
-app.use('/chat', chatRoutes);
+app.use('/chat', chatRouter);
 app.use('/', viewsRouter);
+app.use('/', mockingRouter);
 
 // Redirección a /auth/login cuando se accede a la ruta principal
 app.get('/', (req, res) => {

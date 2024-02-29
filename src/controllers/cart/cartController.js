@@ -129,7 +129,7 @@ function generateUniqueCode() {
 function calculateTotal(cart) {
   let total = 0;
   for (const item of cart.products) {
-      if (item.product && item.product.price) { // Verifica que el producto y su precio estén definidos
+      if (item.product && item.product.price) { 
           total += item.product.price * item.quantity;
       }
   }
