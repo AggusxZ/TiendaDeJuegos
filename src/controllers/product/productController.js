@@ -1,6 +1,7 @@
 const productRepository = require('../../repositories/productRepository');
 const errorCodes = require('../../utils/errorCodes');
 const errorHandler = require('../../utils/errorHandler');
+const { logger } = require('../../utils/logger');
 
 const renderProductsView = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ const renderProductsView = async (req, res) => {
 
     const { limit = 10, page = 1, sort, query } = req.query;
     const products = await productRepository.getProducts();
-    console.log(products);
+    logger.info(products);
     let filteredProducts = [...products]; 
 
     if (sort === 'asc' || sort === 'desc') {
@@ -51,9 +52,10 @@ const renderProductsView = async (req, res) => {
       nextLink: hasNextPage ? `/api/products?limit=${limit}&page=${+page + 1}` : null,
     };
 
-    console.log(simplifiedProducts);
+    logger.info(simplifiedProducts);
     res.render('products', { products: simplifiedProducts, response, user });
   } catch (error) {
+    logger.error('Internal Server Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };

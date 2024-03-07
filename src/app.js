@@ -7,6 +7,8 @@ const passport = require('passport');
 const session = require('express-session');
 const configurePassport = require('./config/passportConfig');
 const MongoStore = require('connect-mongo');
+const { addLogger } = require('./utils/logger');
+const { logger } = require('./utils/logger');
 
 const productsRouter = require('./routes/productsRoutes');
 const cartsRouter = require('./routes/cartsRoutes');
@@ -24,6 +26,8 @@ const PORT = 8080;
 connectDB();
 
 configurePassport();
+
+app.use(addLogger);
 
 // Session con Mongo
 app.use(
@@ -87,12 +91,12 @@ const io = socketIO(server);
 
 // Manejo de WebSockets
 io.on('connection', (socket) => {
-  console.log('Nuevo cliente conectado');
+  logger.info('Nuevo cliente conectado');
 });
 
 // Iniciar el servidor
 server.listen(PORT, () => {
-  console.log(`Servidor escuchando en el puerto ${PORT}`);
+  logger.info(`Servidor escuchando en el puerto ${PORT}`);
 });
 
 

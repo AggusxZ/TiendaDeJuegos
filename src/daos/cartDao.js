@@ -2,10 +2,11 @@ const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
 const CartDTO = require('../dtos/cartDto');
 const uuid = require('uuid');
+const { logger } = require('../utils/logger');
 
 const addToCart = async (productId, cartId) => {
   try {
-    console.log('ID del producto recibido:', productId);
+    logger.debug('ID del producto recibido:', productId);
     let cart = await Cart.findOne({ cartId });
 
     if (!cart) {
@@ -38,7 +39,7 @@ const addToCart = async (productId, cartId) => {
     await cart.save();
     
   } catch (error) {
-    console.error('Error al agregar al carrito:', error);
+    logger.error('Error al agregar al carrito:', error);
     throw error;
   }
 };
@@ -47,7 +48,7 @@ const getCartById = async (cartId) => {
   try {
     return await Cart.findOne({ cartId }).populate('products.productId');
   } catch (error) {
-    console.error('Error al obtener el carrito por ID:', error);
+    logger.error('Error al obtener el carrito por ID:', error);
     throw error;
   }
 };
@@ -76,7 +77,7 @@ const getCartProducts = async () => {
 
     return cartProducts;
   } catch (error) {
-    console.error('Error al obtener productos del carrito:', error);
+    logger.error('Error al obtener productos del carrito:', error);
     throw error;
   }
 };
@@ -85,7 +86,7 @@ const getCarts = async () => {
   try {
     return await Cart.find({});
   } catch (error) {
-    console.error('Error al obtener los carritos:', error);
+    logger.error('Error al obtener los carritos:', error);
     return [];
   }
 };

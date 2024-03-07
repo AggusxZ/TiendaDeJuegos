@@ -1,6 +1,7 @@
 const cartRepository = require('../../repositories/cartRepository');
 const Product = require('../../models/product.model');
 const Ticket = require('../../models/ticket.model');
+const { logger } = require('../../utils/logger');
 
 const createCart = async (req, res) => {
   try {
@@ -19,7 +20,7 @@ const getCartProducts = async (req, res) => {
     }
     return res.json(cartProducts);
   } catch (error) {
-    console.error('Error fetching cart products:', error);
+    logger.error('Error fetching cart products:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -41,10 +42,10 @@ const addToCart = async (req, res) => {
 const viewCart = async (req, res) => {
   try {
     const cartProducts = await cartRepository.getCartProducts();
-    console.log('Cart Products:', JSON.stringify(cartProducts, null, 2));
+    logger.info('Cart Products:', JSON.stringify(cartProducts, null, 2));
 
     if (cartProducts.length === 0) {
-      console.log('Empty cart');
+      logger.info('Empty cart');
       return res.render('cart', { cart: { products: [], total: 0 } }); 
     }
 
@@ -57,7 +58,7 @@ const viewCart = async (req, res) => {
 
     return res.render('cart', { cart: { products: cartProducts, total: total } }); 
   } catch (error) {
-    console.error('Error en viewCart:', error);
+    logger.error('Error en viewCart:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -107,7 +108,7 @@ const purchaseCart = async (req, res) => {
     }
     return res.status(200).json({ message: 'Purchase completed successfully', productsNotPurchased });
   } catch (error) {
-    console.error('Error purchasing cart:', error);
+    logger.error('Error purchasing cart:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };

@@ -1,11 +1,12 @@
 const ProductDAO = require('../daos/productDao');
+const { logger } = require('../utils/logger');
 
 class ProductRepository {
   async addProduct(productData) {
     try {
       return await ProductDAO.addProduct(productData);
     } catch (error) {
-      console.error('Error al agregar el producto:', error);
+      logger.error('Error al agregar el producto:', error);
       throw error;
     }
   }
@@ -14,7 +15,7 @@ class ProductRepository {
     try {
       return await ProductDAO.getProducts();
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
+      logger.error('Error al obtener los productos:', error);
       throw error;
     }
   }
@@ -23,7 +24,7 @@ class ProductRepository {
     try {
       return await ProductDAO.getProductById(id);
     } catch (error) {
-      console.error('Error al obtener el producto por ID:', error);
+      logger.error('Error al obtener el producto por ID:', error);
       throw error;
     }
   }
@@ -32,7 +33,7 @@ class ProductRepository {
     try {
       return await ProductDAO.updateProduct(id, updatedProductData);
     } catch (error) {
-      console.error('Error al actualizar el producto:', error);
+      logger.error('Error al actualizar el producto:', error);
       throw error;
     }
   }
@@ -41,7 +42,7 @@ class ProductRepository {
     try {
       return await ProductDAO.deleteProduct(id);
     } catch (error) {
-      console.error('Error al eliminar el producto:', error);
+      logger.error('Error al eliminar el producto:', error);
       throw error;
     }
   }

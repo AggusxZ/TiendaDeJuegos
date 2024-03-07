@@ -1,5 +1,6 @@
 const Product = require('../models/product.model');
 const ProductDTO = require('../dtos/productDto');
+const { logger } = require('../utils/logger');
 
 class ProductDao {
   async addProduct(productData) {
@@ -14,7 +15,7 @@ class ProductDao {
       
       return newProduct; 
     } catch (error) {
-      console.error('Error al agregar el producto:', error);
+      logger.error('Error al agregar el producto:', error);
       throw error;
     }
   }
@@ -25,7 +26,7 @@ class ProductDao {
         const productDTOs = products.map(product => new ProductDTO(product.name, product.price, product.category));
         return productDTOs;
     } catch (error) {
-        console.error('Error al obtener los productos:', error);
+        logger.error('Error al obtener los productos:', error);
         return [];
     }
   } 
@@ -34,7 +35,7 @@ class ProductDao {
     try {
       return await Product.findById(id);
     } catch (error) {
-      console.error('Error al obtener el producto por ID:', error);
+      logger.error('Error al obtener el producto por ID:', error);
       return null;
     }
   }
@@ -43,7 +44,7 @@ class ProductDao {
     try {
       return await Product.findByIdAndUpdate(id, updatedProductData, { new: true });
     } catch (error) {
-      console.error('Error al actualizar el producto:', error);
+      logger.error('Error al actualizar el producto:', error);
       throw error;
     }
   }
@@ -52,7 +53,7 @@ class ProductDao {
     try {
       return await Product.findByIdAndDelete(id);
     } catch (error) {
-      console.error('Error al eliminar el producto:', error);
+      logger.error('Error al eliminar el producto:', error);
       throw error;
     }
   }
@@ -61,7 +62,7 @@ class ProductDao {
     try {
       return await Product.find({}, '-_id name price category').lean();
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
+      logger.error('Error al obtener los productos:', error);
       return [];
     }
   }

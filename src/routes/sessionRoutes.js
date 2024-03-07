@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated } = require('../middlewares/authorizationMiddleware');
+const { logger } = require('../utils/logger');
 
 const UserDAO = require('../daos/userDao');
 const UserDTO = require('../dtos/userDto');
@@ -17,7 +18,7 @@ router.get('/current', isAuthenticated, async (req, res) => {
 
         res.json({ user: userDTO });
     } catch (error) {
-        console.error('Error al obtener el usuario actual:', error);
+        logger.error('Error al obtener el usuario actual:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

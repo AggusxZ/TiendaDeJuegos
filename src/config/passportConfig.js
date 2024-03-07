@@ -4,6 +4,7 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
 const config = require('../config/config');
+const { logger } = require('../utils/logger');
 
 const configurePassport = () => {
     // Serialización y Deserialización
@@ -37,11 +38,11 @@ const configurePassport = () => {
                     return done(null, false, { message: 'Contraseña incorrecta' });
                 }
     
-                console.log('Inicio de sesión exitoso. Usuario autenticado:', user);
+                logger.info('Inicio de sesión exitoso. Usuario autenticado:', user);
     
                 return done(null, user);
             } catch (error) {
-                console.error('Error en la estrategia local:', error);
+                logger.error('Error en la estrategia local:', error);
                 return done(error);
             }
         }

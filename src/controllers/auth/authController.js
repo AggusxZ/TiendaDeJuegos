@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
 const passport = require('passport');
 const User = require('../../models/user.model');
+const { logger } = require('../../utils/logger');
 
 exports.showRegisterForm = (req, res) => {
     res.render('register');
@@ -29,7 +30,7 @@ exports.registerUser = async (req, res) => {
 
         res.status(201).json({ message: 'Usuario registrado con éxito' });
     } catch (error) {
-        console.error('Error en el registro:', error);
+        logger.error('Error en el registro:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
@@ -62,7 +63,7 @@ exports.loginUser = async (req, res) => {
         res.redirect('/products');
 
     } catch (error) {
-        console.error('Error en el login:', error);
+        logger.error('Error en el login:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
@@ -70,7 +71,7 @@ exports.loginUser = async (req, res) => {
 exports.logoutUser = (req, res) => {
     req.logout((err) => {
         if (err) {
-            console.error('Error al cerrar sesión:', err);
+            logger.error('Error al cerrar sesión:', err);
             return res.status(500).json({ error: 'Error interno del servidor' });
         }
         res.redirect('/auth/login');

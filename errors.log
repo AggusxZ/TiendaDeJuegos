@@ -1,0 +1,3 @@
+warning: This is a warning log from /loggerTest
+error: This is an error log from /loggerTest
+fatal: This is a fatal log from /loggerTest
