@@ -1,3 +1,4 @@
 warning: This is a warning log from /loggerTest
 error: This is an error log from /loggerTest
 fatal: This is a fatal log from /loggerTest
+error: Error al solicitar restablecimiento de contraseña: secretOrPrivateKey must have a value {"stack":"Error: secretOrPrivateKey must have a value\n    at module.exports [as sign] (C:\\Users\\agust\\OneDrive\\Escritorio\\TiendaDeJuegos-main\\node_modules\\jsonwebtoken\\sign.js:111:20)\n    at generateResetToken (C:\\Users\\agust\\OneDrive\\Escritorio\\TiendaDeJuegos-main\\src\\utils\\tokens.js:4:21)\n    at exports.requestPasswordReset (C:\\Users\\agust\\OneDrive\\Escritorio\\TiendaDeJuegos-main\\src\\controllers\\auth\\passwordResetController.js:17:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"}

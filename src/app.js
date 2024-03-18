@@ -5,6 +5,7 @@ const socketIO = require('socket.io');
 const exphbs = require('express-handlebars');
 const passport = require('passport');
 const session = require('express-session');
+const { connectDB, configApp } = require('./config/config');
 const configurePassport = require('./config/passportConfig');
 const MongoStore = require('connect-mongo');
 const { addLogger } = require('./utils/logger');
@@ -17,11 +18,10 @@ const authRouter = require('./routes/authRoutes');
 const sessionRouter = require('./routes/sessionRoutes');
 const chatRouter = require('./routes/chatRoutes');
 const mockingRouter = require('./routes/mockingRoutes');
-
-const connectDB = require('./config/db');
+const pruebaRouter = require('./routes/pruebaRoutes')
 
 const app = express();
-const PORT = 8080;
+const PORT = configApp.port;
 
 connectDB();
 
@@ -79,6 +79,7 @@ app.use('/api', sessionRouter);
 app.use('/chat', chatRouter);
 app.use('/', viewsRouter);
 app.use('/', mockingRouter);
+app.use('/pruebas', pruebaRouter)
 
 // Redirección a /auth/login cuando se accede a la ruta principal
 app.get('/', (req, res) => {
