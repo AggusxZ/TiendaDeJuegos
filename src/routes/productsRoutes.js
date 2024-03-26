@@ -10,13 +10,13 @@ productsRouter.get('/', renderProductsView);
 productsRouter.get('/:pid', productController.getProductById);
 
 // Ruta para crear un nuevo producto (solo para administradores)
-productsRouter.post('/create', isAdmin, productController.addProduct);
+productsRouter.post('/', productController.addProduct);
 
 // Ruta para actualizar un producto existente (solo para administradores)
-productsRouter.put('/update/:id', isAdmin, productController.updateProduct);
+productsRouter.put('/:id', productController.updateProduct);
 
 // Ruta para eliminar un producto existente (solo para administradores)
-productsRouter.delete('/delete/:id', isAdmin, productController.deleteProduct);
+productsRouter.delete('/:id', productController.deleteProduct);
 
 module.exports = productsRouter;
 

@@ -73,7 +73,12 @@ const getProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const { pid } = req.params;
-    const product = await productRepository.getProductById(parseInt(pid, 10));
+
+    if (isNaN(parseInt(pid, 10))) {
+      throw new Error('Invalid product ID');
+    }
+
+    const product = await productRepository.getProductById(pid);
 
     if (!product) {
       const error = new Error('Product not found');
@@ -101,12 +106,17 @@ const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const updatedProductData = req.body;
+
+    console.log("ID del producto:", id);
+    console.log("Datos actualizados del producto:", updatedProductData);
+
     const updatedProduct = await productRepository.updateProduct(id, updatedProductData);
     return res.status(200).json({ message: 'Product updated successfully', updatedProduct });
   } catch (error) {
     errorHandler.handleProductError(error, res);
   }
 };
+
 
 const deleteProduct = async (req, res) => {
   try {

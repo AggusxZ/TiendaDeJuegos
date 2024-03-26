@@ -20,6 +20,9 @@ const chatRouter = require('./routes/chatRoutes');
 const mockingRouter = require('./routes/mockingRoutes');
 const pruebaRouter = require('./routes/pruebaRoutes')
 
+const swaggerJsDoc = require('swagger-jsdoc')
+const swaggerUiExpress = require('swagger-ui-express')
+
 const app = express();
 const PORT = configApp.port;
 
@@ -28,6 +31,21 @@ connectDB();
 configurePassport();
 
 app.use(addLogger);
+
+const swaggerOptions = {
+    definition: {
+      openapi: '3.0.1',
+      info: {
+          title: 'Documentación de Tienda de Juegos',
+          description: 'Api Docs para Tienda de Juegos'
+      }
+    },
+    apis: [`${__dirname}/docs/**/*.yaml`]
+}
+
+const specs = swaggerJsDoc(swaggerOptions)
+
+app.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs))
 
 // Session con Mongo
 app.use(
@@ -74,7 +92,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/auth', authRouter);
 app.use('/products', productsRouter);
-app.use('/api/carts', cartsRouter);
+app.use('/carts', cartsRouter);
 app.use('/api', sessionRouter);
 app.use('/chat', chatRouter);
 app.use('/', viewsRouter);
