@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { configApp } = require('../config/config');
+const { logger } = require('../utils/logger');
 
 const sendPasswordResetEmail = async (email, resetToken) => {
   const transporter = nodemailer.createTransport({
@@ -21,7 +22,7 @@ const sendPasswordResetEmail = async (email, resetToken) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Correo electrónico enviado con éxito');
+    logger.info('Correo electrónico enviado con éxito');
   } catch (error) {
     console.error('Error al enviar el correo electrónico:', error);
     throw new Error('Error al enviar el correo electrónico');

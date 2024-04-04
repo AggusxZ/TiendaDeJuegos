@@ -118,4 +118,4 @@ server.listen(PORT, () => {
   logger.info(`Servidor escuchando en el puerto ${PORT}`);
 });
 
-
+module.exports = app;

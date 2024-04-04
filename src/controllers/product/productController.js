@@ -10,7 +10,7 @@ const renderProductsView = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    const { limit = 10, page = 1, sort, query } = req.query;
+    const { limit = 10, page = 1, sort, query, format } = req.query;
     const products = await productRepository.getProducts();
     logger.info(products);
     let filteredProducts = [...products]; 
@@ -52,22 +52,28 @@ const renderProductsView = async (req, res) => {
       nextLink: hasNextPage ? `/api/products?limit=${limit}&page=${+page + 1}` : null,
     };
 
-    logger.info(simplifiedProducts);
-    res.render('products', { products: simplifiedProducts, response, user });
+    if (format === 'json') {
+      return res.json(response);
+    } else {
+      return res.render('products', { products: simplifiedProducts, response, user });
+    }
   } catch (error) {
     logger.error('Internal Server Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
 const getProducts = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect('/auth/login');
+    }
 
-  if (!req.session.user) {
-    return res.redirect('/auth/login');
+    return await renderProductsView(req, res);
+  } catch (error) {
+    logger.error('Internal Server Error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
-
-  return renderProductsView(req, res);
 };
 
 const getProductById = async (req, res) => {
@@ -107,8 +113,8 @@ const updateProduct = async (req, res) => {
     const { id } = req.params;
     const updatedProductData = req.body;
 
-    console.log("ID del producto:", id);
-    console.log("Datos actualizados del producto:", updatedProductData);
+    logger.info("ID del producto:", id);
+    logger.info("Datos actualizados del producto:", updatedProductData);
 
     const updatedProduct = await productRepository.updateProduct(id, updatedProductData);
     return res.status(200).json({ message: 'Product updated successfully', updatedProduct });

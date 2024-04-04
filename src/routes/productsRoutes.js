@@ -3,9 +3,11 @@ const productsRouter = express.Router();
 const productController = require('../controllers/product/productController');
 const { isAdmin } = require('../middlewares/authorizationMiddleware');
 
-const { renderProductsView } = require('../controllers/product/productController');
 
-productsRouter.get('/', renderProductsView);
+productsRouter.get('/', (req, res) => {
+    const format = req.query.format;
+    productController.getProducts(req, res, format);
+});
 
 productsRouter.get('/:pid', productController.getProductById);
 

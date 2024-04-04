@@ -31,8 +31,8 @@ class ProductRepository {
 
   async updateProduct(id, updatedProductData) {
     try {
-      console.log("Actualizando producto con ID:", id);
-      console.log("Datos actualizados del producto:", updatedProductData);
+      logger.info("Actualizando producto con ID:", id);
+      logger.info("Datos actualizados del producto:", updatedProductData);
       return await ProductDAO.updateProduct(id, updatedProductData);
     } catch (error) {
       logger.error('Error al actualizar el producto:', error);
