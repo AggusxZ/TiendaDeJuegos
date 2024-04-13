@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js --mode production",
-    "dev": "nodemon src/app.js --mode development"
+    "dev": "nodemon src/app.js --mode development",
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",

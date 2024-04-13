@@ -3,19 +3,25 @@ const Product = require('../../models/product.model');
 const Ticket = require('../../models/ticket.model');
 const { logger } = require('../../utils/logger');
 
+
 const createCart = async (req, res) => {
   try {
-    await cartRepository.addToCart();
-    return res.status(201).json({ message: 'New cart created' });
+    const productId = req.body.productId || null;
+    const newCart = await cartRepository.addToCart(productId);
+    return res.status(201).json({ message: 'New cart created', cartId: newCart._id }); 
   } catch (error) {
+    logger.error('Error creating cart:', error); 
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 const getCartProducts = async (req, res) => {
   try {
-    const cartProducts = await cartRepository.getCartProducts();
-    if (cartProducts.length === 0) {
+    const cartId = req.params.cartId;
+
+    const cartProducts = await cartRepository.getCartProducts(cartId); 
+
+    if (!cartProducts) {
       return res.status(404).json({ error: 'No products found in cart' });
     }
     return res.json(cartProducts);
@@ -27,42 +33,48 @@ const getCartProducts = async (req, res) => {
 
 const addToCart = async (req, res) => {
   try {
-    const { pid } = req.params;
-    const { cartId } = req.body; 
-    if (!cartId) {
+    const { pid, cid } = req.params;
+
+    if (!cid) { 
       return res.status(400).json({ error: 'Cart ID is required' });
     }
-    await cartRepository.addToCart(pid, cartId); 
+
+    await cartRepository.addToCart(pid, cid); 
+
     return res.status(201).json({ message: 'Product added to cart' });
   } catch (error) {
+    console.error('Error in addToCart:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 const viewCart = async (req, res) => {
   try {
-    const cartProducts = await cartRepository.getCartProducts();
-    logger.info('Cart Products:', JSON.stringify(cartProducts, null, 2));
+    const cartId = req.params.cartId; 
+    const cartProductsDTO = await cartRepository.getCartProducts(cartId);
+    logger.info('Cart Products:', JSON.stringify(cartProductsDTO, null, 2));
 
-    if (cartProducts.length === 0) {
-      logger.info('Empty cart');
-      return res.render('cart', { cart: { products: [], total: 0 } }); 
+    if (!cartProductsDTO) {
+      logger.info('No products found in cart');
+      return res.render('cart', { cart: { products: [], total: 0 } });
     }
 
     let total = 0;
-    cartProducts.forEach(cartDTO => {
-      cartDTO.products.forEach(product => {
-        total += product.price * product.quantity;
-      });
+    if (!Array.isArray(cartProductsDTO.cartProducts)) {
+      logger.error('Cart products is not an array:', cartProductsDTO.cartProducts);
+      return res.status(500).json({ error: 'Invalid cart products' });
+    }
+
+    cartProductsDTO.cartProducts.forEach(product => {
+      total += product.price * product.quantity;
     });
 
-    return res.render('cart', { cart: { products: cartProducts, total: total } }); 
+    return res.render('cart', { cart: { products: cartProductsDTO.cartProducts, total: total } });
   } catch (error) {
     logger.error('Error en viewCart:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 const purchaseCart = async (req, res) => {
   try {
@@ -113,8 +125,6 @@ const purchaseCart = async (req, res) => {
   }
 };
 
-
-// Función para generar un código único
 function generateUniqueCode() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const codeLength = 8;
@@ -126,14 +136,11 @@ function generateUniqueCode() {
   return code;
 }
 
-// Función para calcular el total de la compra
-function calculateTotal(cart) {
+function calculateTotal(products) {
   let total = 0;
-  for (const item of cart.products) {
-      if (item.product && item.product.price) { 
-          total += item.product.price * item.quantity;
-      }
-  }
+  products.forEach(product => {
+    total += product.price * product.quantity;
+  });
   return total;
 }
 
@@ -144,6 +151,7 @@ module.exports = {
   viewCart,
   purchaseCart,
 };
+
 
 
 

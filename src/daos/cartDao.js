@@ -1,17 +1,20 @@
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
 const CartDTO = require('../dtos/cartDto');
-const uuid = require('uuid');
+const mongoose = require('mongoose');
 const { logger } = require('../utils/logger');
 
 const addToCart = async (productId, cartId) => {
   try {
     logger.debug('ID del producto recibido:', productId);
-    let cart = await Cart.findOne({ cartId });
+
+    let cart;
+    if (cartId) {
+      cart = await Cart.findOne({ _id: new mongoose.Types.ObjectId(cartId) });
+    }
 
     if (!cart) {
       cart = new Cart({ 
-        cartId: uuid.v4(), 
         products: [] 
       });
     }
@@ -20,7 +23,7 @@ const addToCart = async (productId, cartId) => {
       const product = await Product.findById(productId);
 
       if (!product) {
-        throw new Error('El producto no existe');
+        throw new Error('Producto no encontrado');
       }
 
       const productIndex = cart.products.findIndex(p => p.productId.toString() === productId);
@@ -38,6 +41,8 @@ const addToCart = async (productId, cartId) => {
 
     await cart.save();
     
+    return cart; 
+
   } catch (error) {
     logger.error('Error al agregar al carrito:', error);
     throw error;
@@ -46,36 +51,32 @@ const addToCart = async (productId, cartId) => {
 
 const getCartById = async (cartId) => {
   try {
-    return await Cart.findOne({ cartId }).populate('products.productId');
+    const cart = await Cart.findOne({ _id: cartId }).populate('products.productId');
+    return cart;
   } catch (error) {
     logger.error('Error al obtener el carrito por ID:', error);
     throw error;
   }
 };
 
-const getCartProducts = async () => {
+const getCartProducts = async (cartId) => {
   try {
-    const allCarts = await Cart.find({});
-    const cartProducts = [];
-
-    for (const cart of allCarts) {
-      const products = [];
-      for (const item of cart.products) {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          products.push({
-            productId: product._id,
-            name: product.name,
-            price: product.price,
-            quantity: item.quantity
-          });
-        }
-      }
-
-      cartProducts.push(new CartDTO(cart.cartId, products));
+    const cart = await Cart.findOne({ _id: cartId }).populate('products.productId');
+    
+    if (!cart) {
+      throw new Error('No se encontró el carrito');
     }
 
-    return cartProducts;
+    const cartProducts = cart.products.map(item => ({
+      productId: item.productId._id,
+      name: item.productId.name,
+      price: item.price,
+      quantity: item.quantity
+    }));
+
+    const cartDTO = new CartDTO(cart._id, cartProducts);
+
+    return cartDTO; 
   } catch (error) {
     logger.error('Error al obtener productos del carrito:', error);
     throw error;
@@ -97,4 +98,6 @@ module.exports = {
   getCartProducts,
   getCarts
 };
+
+
 

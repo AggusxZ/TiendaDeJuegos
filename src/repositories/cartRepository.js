@@ -4,16 +4,18 @@ const { logger } = require('../utils/logger');
 class CartRepository {
   async addToCart(productId, cartId) {
     try {
-      return await CartDAO.addToCart(productId, cartId);
+      const cart = await CartDAO.addToCart(productId, cartId);
+      return cart; 
     } catch (error) {
       logger.error('Error al agregar al carrito:', error);
       throw error;
     }
   }
-
-  async getCartProducts() {
+  
+  async getCartProducts(cartId) {
     try {
-      return await CartDAO.getCartProducts();
+      const cartProducts = await CartDAO.getCartProducts(cartId);
+      return cartProducts;
     } catch (error) {
       logger.error('Error al obtener productos del carrito:', error);
       throw error;
@@ -40,5 +42,8 @@ class CartRepository {
 }
 
 module.exports = new CartRepository();
+
+
+
 
 

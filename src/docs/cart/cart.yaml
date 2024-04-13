@@ -1,163 +1,204 @@
 paths:
-  /carts/view:
-    get:
-      summary: Obtiene la vista del carrito.
-      tags:
-        - Cart
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Vista del carrito obtenida correctamente.
-          content:
-            text/html:
-              schema:
-                type: string
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '500':
-          description: Error interno del servidor.
-
-  /carts/:
+  /carts:
     post:
-      summary: Crea un nuevo carrito.
-      tags:
-        - Cart
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewCart'
+      summary: Crear un nuevo carrito
+      tags: 
+        - Carts
+      description: Crea un nuevo carrito de compras.
       responses:
         '201':
-          description: Nuevo carrito creado correctamente.
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          description: Carrito creado exitosamente.
         '500':
           description: Error interno del servidor.
-
+  /carts/{cartId}/products:
     get:
-      summary: Obtiene los productos del carrito.
-      tags:
-        - Cart
-      security:
-        - bearerAuth: []
+      summary: Obtener productos del carrito
+      tags: 
+        - Carts
+      description: Obtiene todos los productos en el carrito especificado.
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema:
+            type: string
+          description: ID del carrito del que se quieren obtener los productos.
       responses:
         '200':
-          description: Productos del carrito obtenidos correctamente.
+          description: Productos obtenidos exitosamente.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CartProduct'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+                type: object
+                properties:
+                  cartId:
+                    type: string
+                    description: ID del carrito.
+                  cartProducts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: string
+                          description: ID del producto.
+                        name:
+                          type: string
+                          description: Nombre del producto.
+                        price:
+                          type: number
+                          description: Precio del producto.
+                        quantity:
+                          type: number
+                          description: Cantidad del producto en el carrito.
         '404':
           description: No se encontraron productos en el carrito.
-        '500':
-          description: Error interno del servidor.
-
-  /carts/{pid}:
+  /carts/{cartId}/{productId}:
     post:
-      summary: Agrega un producto al carrito.
-      tags:
-        - Cart
-      security:
-        - bearerAuth: []
+      summary: Agregar un producto al carrito
+      tags: 
+        - Carts
+      description: Agrega un producto al carrito especificado.
       parameters:
-        - name: pid
-          in: path
+        - in: path
+          name: cartId
           required: true
-          description: ID del producto que se desea agregar al carrito.
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddToCartRequest'
+          schema:
+            type: string
+          description: ID del carrito al que se quiere agregar el producto.
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+          description: ID del producto que se quiere agregar al carrito.
       responses:
         '201':
-          description: Producto agregado al carrito correctamente.
+          description: Producto agregado al carrito exitosamente.
         '400':
-          description: ID del carrito es requerido o el producto ya está en el carrito.
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          description: Error en la solicitud debido a parámetros faltantes o inválidos.
         '500':
           description: Error interno del servidor.
-
-  /carts/{cid}/purchase:
-    post:
-      summary: Realiza la compra del carrito.
-      tags:
-        - Cart
-      security:
-        - bearerAuth: []
+  /carts/view/{cartId}:
+    get:
+      summary: Ver el carrito
+      tags: 
+        - Carts
+      description: Retorna la lista de productos en el carrito con su precio y el total.
       parameters:
-        - name: cid
-          in: path
+        - in: path
+          name: cartId
           required: true
-          description: ID del carrito que se va a comprar.
-          type: string
+          schema:
+            type: string
+          description: ID del carrito que se quiere visualizar.
       responses:
         '200':
-          description: Compra del carrito realizada correctamente.
-        '400':
-          description: ID del carrito no encontrado o productos no encontrados en el carrito.
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          description: Carrito no encontrado.
+          description: Vista del carrito obtenida exitosamente.
+          content:
+            application/json:
+              example:
+                cartId: "123456789"
+                cartProducts:
+                  - productId: "1"
+                    name: "Producto 1"
+                    price: 10
+                    quantity: 1
+                  - productId: "2"
+                    name: "Producto 2"
+                    price: 20
+                    quantity: 1
+                total: 30
         '500':
           description: Error interno del servidor.
-
+  /carts/purchase/{cid}:
+    post:
+      summary: Comprar el carrito
+      tags: 
+        - Carts
+      description: Realiza la compra de los productos en el carrito especificado.
+      parameters:
+        - in: path
+          name: cid
+          required: true
+          schema:
+            type: string
+          description: ID del carrito que se quiere comprar.
+      responses:
+        '200':
+          description: Compra completada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+                  productsNotPurchased:
+                    type: array
+                    items:
+                      type: string
+                    description: Lista de IDs de productos que no se pudieron comprar.
+        '400':
+          description: Error en la solicitud debido a parámetros faltantes o inválidos.
+        '404':
+          description: No se encontró el carrito especificado.
+        '500':
+          description: Error interno del servidor.
+          
 components:
   schemas:
-    NewCart:
+    Product:
       type: object
       properties:
-        cartId:
+        _id:
           type: string
-          description: ID del carrito.
-          example: "123456789"
-    CartProduct:
-      type: object
-      properties:
-        productId:
+          description: ID autogenerados de Mongo.
+        name:
           type: string
-          description: ID del producto.
-          example: "609c7d5a9f19e678ef1d9c5e"
-        quantity:
-          type: integer
-          description: Cantidad del producto en el carrito.
-          example: 2
+          description: Nombre del producto.
         price:
           type: number
-          description: Precio del producto en el carrito.
-          example: 1200
-    AddToCartRequest:
+          description: Precio del producto.
+        category:
+          type: string
+          description: Categoría a la que pertenece el producto.
+      example:
+        _id: ObjectId("189667z9d12h16252w23f786")
+        name: Tomb Raider
+        price: 1200
+        category: Aventuras
+    Cart:
       type: object
       properties:
-        cartId:
+        _id:
           type: string
-          description: ID del carrito.
-          example: "123456789"
-
-  responses:
-    UnauthorizedError:
-      description: No autorizado. Las credenciales de autenticación no son válidas o no se proporcionaron.
-      content:
-        application/json:
-          schema:
+          description: ID autogenerado del carrito.
+        products:
+          type: array
+          items:
             type: object
             properties:
-              error:
+              productId:
                 type: string
-                example: No autorizado
+                description: ID del producto.
+              quantity:
+                type: number
+                description: Cantidad del producto en el carrito.
+              price:
+                type: number
+                description: Precio del producto.
+      example:
+        _id: ObjectId("189667z9d12h16252w23f787")
+        products:
+          - productId: ObjectId("189667z9d12h16252w23f786")
+            quantity: 1
+            price: 1200
+          - productId: ObjectId("189667z9d12h16252w23f788")
+            quantity: 2
+            price: 1500
+
 
 
 

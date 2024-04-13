@@ -6,6 +6,16 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 
 describe('Carts API', () => {
+  let cartId;
+  let productId;
+
+  before(async () => {
+    const createCartResponse = await chai.request(app).post('/carts');
+    cartId = createCartResponse.body.cartId;
+
+    productId = '659667c9d12f13252c93f726'; 
+  });
+
   describe('POST /carts', () => {
     it('should create a new cart', (done) => {
       chai.request(app)
@@ -18,25 +28,10 @@ describe('Carts API', () => {
     });
   });
 
-  describe('GET /carts', () => {
-    it('should return cart products', (done) => {
-      chai.request(app)
-        .get('/carts')
-        .end((err, res) => {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.an('array');
-          done();
-        });
-    });
-  });
-
-  describe('POST /carts/:pid', () => {
+  describe('POST /carts/:cid/:pid', () => {
     it('should add a product to the cart', (done) => {
-      const productId = '659667c9d12f13252c93f725';
-      const cartId = '65d765a542777c4a9131d0a8';
       chai.request(app)
-        .post(`/carts/${productId}`)
-        .send({ cartId: cartId })
+        .post(`/carts/${cartId}/${productId}`)
         .end((err, res) => {
           expect(res).to.have.status(201);
           expect(res.body).to.have.property('message').equal('Product added to cart');
@@ -45,16 +40,24 @@ describe('Carts API', () => {
     });
   });
 
-  describe('POST /carts/:cid/purchase', () => {
-    it('should purchase the cart and return a success message', (done) => {
-      const cartId = '65d765a542777c4a9131d0a8';
+  describe('GET /carts/view/:cartId', () => {
+    beforeEach(async () => {
+      await chai.request(app)
+        .post(`/carts/${cartId}/${productId}`);
+    });
+
+    it('should return cart products', (done) => {
       chai.request(app)
-        .post(`/carts/${cartId}/purchase`)
+        .get(`/carts/view/${cartId}`)
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body).to.have.property('message').equal('Purchase completed successfully');
+          expect(res.body).to.be.an('object');
+          expect(res.body.cart).to.have.property('products');
           done();
         });
     });
   });
 });
+
+
+

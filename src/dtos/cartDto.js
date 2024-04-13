@@ -1,9 +1,10 @@
 class CartDTO {
-    constructor(cartId, products) {
+    constructor(cartId, cartProducts) {
         this.cartId = cartId;
-        this.products = products;
+        this.cartProducts = cartProducts;
     }
 }
 
 module.exports = CartDTO;
+
 
