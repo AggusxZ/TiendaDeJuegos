@@ -1,56 +1,51 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const { showRegisterForm, registerUser, showLoginForm, loginUser, logoutUser, githubAuth, githubAuthCallback } = require('../controllers/auth/authController');
-const { requestPasswordReset, resetPassword } = require('../controllers/auth/passwordResetController');
-const jwt = require('jsonwebtoken');
-const { generateResetToken } = require('../utils/tokens');
+const { showRegisterForm, registerUser, showLoginForm, loginUser, logoutUser } = require('../controllers/auth/authController');
+const passport = require('passport');
+const { isAuthenticated, isAdmin, isUser } = require('../middlewares/authorizationMiddleware');
 
-// Rutas de autenticación
+// Mostrar formulario de registro
 router.get('/register', showRegisterForm);
+
+// Procesar datos de registro
 router.post('/register', [
-    body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 6 }),
+    body('firstName').notEmpty().withMessage('El nombre es requerido'),
+    body('lastName').notEmpty().withMessage('El apellido es requerido'),
+    body('email').isEmail().withMessage('El correo electrónico no es válido'),
+    body('password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
 ], registerUser);
 
+// Mostrar formulario de inicio de sesión
 router.get('/login', showLoginForm);
+
+// Procesar datos de inicio de sesión utilizando la función loginUser
 router.post('/login', loginUser);
+
+// Cerrar sesión
 router.get('/logout', logoutUser);
+router.post('/logout', logoutUser);
 
-// Rutas de restablecimiento de contraseña
-router.post('/password/reset/request', [
-    body('email').isEmail().normalizeEmail(),
-], requestPasswordReset);
-
-router.get('/password/reset/request', (req, res) => {
-    res.render('password_reset_request');
+// Ejemplo de ruta protegida que requiere autenticación
+router.get('/profile', isAuthenticated, (req, res) => {
+    res.send('Perfil del usuario');
 });
 
-router.post('/password/reset', [
-    body('token').not().isEmpty(),
-    body('newPassword').isLength({ min: 6 }),
-], resetPassword);
-
-router.get('/password/reset', (req, res) => {
-    const token = req.query.token;
-    if (!token) {
-        return res.status(400).json({ error: 'Se requiere un token para restablecer la contraseña' });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(400).json({ error: 'El token de restablecimiento de contraseña es inválido o ha expirado' });
-        }
-        
-        res.render('password_reset_form', { token });
-    });
+// Ejemplo de ruta protegida que requiere permisos de administrador
+router.get('/admin', isAdmin, (req, res) => {
+    res.send('Panel de administración');
 });
 
-// Rutas de autenticación de GitHub
-router.get('/github', githubAuth);
-router.get('/github/callback', githubAuthCallback);
+// Ejemplo de ruta protegida que requiere permisos de usuario
+router.get('/user', isUser, (req, res) => {
+    res.send('Panel de usuario');
+});
 
 module.exports = router;
+
+
+
+
 
 
 

@@ -1,89 +1,48 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const GitHubStrategy = require('passport-github2').Strategy;
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
-const { configApp } = require('../config/config');
-const { logger } = require('../utils/logger');
 
-const configurePassport = () => {
-    // Serialización y Deserialización
-    passport.serializeUser((user, done) => {
-        done(null, user.id);
-    });
-    
-    passport.deserializeUser(async (id, done) => {
-        try {
-            const user = await User.findById(id);
-            done(null, user);
-        } catch (error) {
-            done(error);
-        }
-    });
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  },
+  async function(email, password, done) {
+    try {
+      const user = await User.findOne({ email });
 
-    // Estrategia Local
-    passport.use(new LocalStrategy(
-        { usernameField: 'email' },
-        async (email, password, done) => {
-            try {
-                const user = await User.findOne({ email });
-    
-                if (!user) {
-                    return done(null, false, { message: 'Usuario no encontrado' });
-                }
-    
-                const passwordMatch = await bcrypt.compare(password, user.password);
-    
-                if (!passwordMatch) {
-                    return done(null, false, { message: 'Contraseña incorrecta' });
-                }
-    
-                logger.info('Inicio de sesión exitoso. Usuario autenticado:', user);
-    
-                return done(null, user);
-            } catch (error) {
-                logger.error('Error en la estrategia local:', error);
-                return done(error);
-            }
-        }
-    ));
+      if (!user) {
+        return done(null, false, { message: 'Usuario no encontrado' });
+      }
 
-    // Estrategia GitHub
-    passport.use(new GitHubStrategy({
-        clientID: configApp.githubClientId,
-        clientSecret: configApp.githubClientSecret,
-        callbackURL: 'http://localhost:8080/auth/github/callback',
-        scope: ['user:email']
-    },
-    async (accessToken, refreshToken, profile, done) => {
-        try {
-            const email = (profile.emails && profile.emails[0] && profile.emails[0].value) || null;
-    
-            if (!email) {
-                return done(new Error('Correo electrónico no proporcionado por GitHub'));
-            }
-    
-            const user = await User.findOne({ email });
-    
-            if (user) {
-                return done(null, user);
-            } else {
-                const newUser = new User({
-                    email,
-                    name: profile.displayName,
-                });
-    
-                await newUser.save();
-    
-                return done(null, newUser);
-            }
-        } catch (error) {
-            return done(error);
-        }
-    }));
-};
+      const passwordMatch = await bcrypt.compare(password, user.password);
 
-module.exports = configurePassport;
+      if (!passwordMatch) {
+        return done(null, false, { message: 'Contraseña incorrecta' });
+      }
+
+      return done(null, user);
+    } catch (error) {
+      return done(error);
+    }
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
+module.exports = passport;
+
 
 
 

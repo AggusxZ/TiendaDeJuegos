@@ -6,7 +6,7 @@ const exphbs = require('express-handlebars');
 const passport = require('passport');
 const session = require('express-session');
 const { connectDB, configApp } = require('./config/config');
-const configurePassport = require('./config/passportConfig');
+const customPassport = require('./config/passportConfig');
 const MongoStore = require('connect-mongo');
 const { addLogger } = require('./utils/logger');
 const { logger } = require('./utils/logger');
@@ -19,6 +19,7 @@ const sessionRouter = require('./routes/sessionRoutes');
 const chatRouter = require('./routes/chatRoutes');
 const mockingRouter = require('./routes/mockingRoutes');
 const pruebaRouter = require('./routes/pruebaRoutes')
+const userRouter = require('./routes/userRoutes');
 
 const swaggerJsDoc = require('swagger-jsdoc')
 const swaggerUiExpress = require('swagger-ui-express')
@@ -27,8 +28,6 @@ const app = express();
 const PORT = configApp.port;
 
 connectDB();
-
-configurePassport();
 
 app.use(addLogger);
 
@@ -65,8 +64,8 @@ app.use(
   })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(customPassport.initialize());
+app.use(customPassport.session());
 
 // Configuración de Handlebars
 const hbs = exphbs.create({
@@ -96,13 +95,9 @@ app.use('/carts', cartsRouter);
 app.use('/api', sessionRouter);
 app.use('/chat', chatRouter);
 app.use('/', viewsRouter);
-app.use('/', mockingRouter);
+app.use('/mocking', mockingRouter);
 app.use('/pruebas', pruebaRouter)
-
-// Redirección a /auth/login cuando se accede a la ruta principal
-app.get('/', (req, res) => {
-  res.redirect('/auth/login');
-});
+app.use('/users', userRouter);
 
 // Creación del servidor HTTP
 const server = http.createServer(app);

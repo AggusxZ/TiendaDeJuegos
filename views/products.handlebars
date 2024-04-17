@@ -8,14 +8,14 @@
     <h1>Lista de Productos</h1>
 
     {{#if user}}
-        <p>Bienvenido, {{user.email}}!</p>
-        {{#ifEqual user.role 'admin'}}
-            <p>Eres un administrador.</p>
-        {{/ifEqual}}
+    <p>Bienvenido, {{user._doc.email}}!</p>
+    {{#ifEqual user._doc.role 'admin'}}
+        <p>Eres un administrador.</p>
+    {{/ifEqual}}
 
-        <form action="/auth/logout" method="post">
-            <button type="submit">Logout</button>
-        </form>
+    <form action="/auth/logout" method="post">
+        <button type="submit">Logout</button>
+    </form>
     {{/if}}
 
     <ul>

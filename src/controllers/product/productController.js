@@ -5,14 +5,17 @@ const { logger } = require('../../utils/logger');
 
 const renderProductsView = async (req, res) => {
   try {
-    const user = req.session.user;
+    const user = req.user;
     if (!user) {
+      /* logger.error('Usuario no autenticado. Redirigiendo a la página de inicio de sesión.'); */
       return res.redirect('/auth/login');
     }
 
+    /* logger.info('Usuario autenticado:', user); */
+
     const { limit = 10, page = 1, sort, query, format } = req.query;
     const products = await productRepository.getProducts();
-    logger.info(products);
+    /* logger.info('Productos obtenidos:', products); */
     let filteredProducts = [...products]; 
 
     if (sort === 'asc' || sort === 'desc') {
@@ -65,7 +68,7 @@ const renderProductsView = async (req, res) => {
 
 const getProducts = async (req, res) => {
   try {
-    if (!req.session.user) {
+    if (!req.user) {
       return res.redirect('/auth/login');
     }
 
@@ -100,8 +103,16 @@ const getProductById = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    const newProduct = req.body;
+    const { name, category, price } = req.body;
+
+    const newProduct = {
+      name,
+      category,
+      price,
+    };
+
     await productRepository.addProduct(newProduct);
+
     return res.status(201).json({ message: 'Product added successfully' });
   } catch (error) {
     errorHandler.handleProductError(error, res);

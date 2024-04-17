@@ -1,4 +1,7 @@
 <h1>Lista de Productos</h1>
+{{#if user}}
+  <p>Bienvenido, Usuario: {{user.email}}</p>
+{{/if}}
 <ul>
   {{#each products}}
     <li>

@@ -1,142 +1,133 @@
 const bcrypt = require('bcrypt');
-const { validationResult } = require('express-validator');
 const passport = require('passport');
+const { validationResult } = require('express-validator');
 const User = require('../../models/user.model');
-const { generateResetToken } = require('../../utils/tokens'); 
-const { sendPasswordResetEmail } = require('../../utils/email'); 
 const { logger } = require('../../utils/logger');
+const jwt = require('jsonwebtoken');
 
-exports.showRegisterForm = (req, res) => {
+// Función para mostrar el formulario de registro
+const showRegisterForm = (req, res) => {
     res.render('register');
 };
 
-exports.registerUser = async (req, res) => {
+// Función para registrar un nuevo usuario
+const registerUser = async (req, res) => {
+    // Validar los datos del formulario
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    // Extraer datos del cuerpo de la solicitud
+    const { firstName, lastName, email, password } = req.body;
+
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            const errorMessages = errors.array().map(error => error.msg);
-            return res.status(400).json({ error: errorMessages[0] }); 
-        }
+        // Verificar si el usuario ya existe en la base de datos
+        let user = await User.findOne({ email });
 
-        const { email, password } = req.body;
-
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        if (user) {
             return res.status(400).json({ error: 'El usuario ya existe' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Crear un nuevo usuario
+        user = new User({
+            firstName,
+            lastName,
+            email,
+            password,
+        });
 
-        const newUser = new User({ email, password: hashedPassword, role: 'usuario' });
-        await newUser.save();
+        // Encriptar la contraseña
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
 
-        res.status(201).json({ message: 'Usuario registrado con éxito' });
-    } catch (error) {
-        logger.error('Error en el registro:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        // Guardar el usuario en la base de datos
+        await user.save();
+
+        // Redirigir al cliente a la página de inicio de sesión
+        res.redirect('/auth/login');
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Error del servidor');
     }
 };
 
-exports.showLoginForm = (req, res) => {
+// Función para mostrar el formulario de inicio de sesión
+const showLoginForm = (req, res) => {
     res.render('login');
 };
 
-exports.loginUser = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ error: errors.array()[0].msg });
-        }
-
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
-        }
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
-        }
-        
-        req.session.user = user;
-        
-        res.redirect('/products');
-
-    } catch (error) {
-        logger.error('Error en el login:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-};
-
-exports.requestPasswordReset = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ error: 'No hay ningún usuario registrado con este correo electrónico' });
-        }
-
-        const resetToken = generateResetToken(user._id);
-
-        await sendPasswordResetEmail(email, resetToken);
-
-        res.status(200).json({ message: 'Se ha enviado un correo electrónico con instrucciones para restablecer tu contraseña' });
-    } catch (error) {
-        logger.error('Error al solicitar restablecimiento de contraseña:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-};
-
-exports.resetPassword = async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-
-        let decoded;
+// Función para iniciar sesión
+const loginUser = (req, res, next) => {
+    passport.authenticate('local', async (err, user, info) => {
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (err) { return next(err); }
+            if (!user) {
+                req.flash('error', 'Credenciales inválidas');
+                return res.redirect('/auth/login');
+            }
+            req.logIn(user, async (err) => {
+                if (err) { return next(err); }
+                const redirectTo = req.session.returnTo || '/products';
+                delete req.session.returnTo;
+
+                // Generar y firmar el token JWT
+                const token = jwt.sign({ email: user.email, role: user.role }, 'f6a455cc20c82642fee4a728fec77d7f4fa8859fd5cecdec25cf0feb76864f7', { expiresIn: '1h' });
+
+                // Enviar el token como parte de la respuesta
+                res.json({ token, redirectTo });
+            });
         } catch (error) {
-            return res.status(400).json({ error: 'El token de restablecimiento de contraseña es inválido o ha expirado' });
+            console.error('Error al iniciar sesión:', error);
+            res.status(500).json({ error: 'Error interno del servidor' });
         }
-
-        const userId = decoded.userId;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
-
-        if (newPassword === user.password) {
-            return res.status(400).json({ error: 'No puedes usar la misma contraseña anterior' });
-        }
-
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.password = hashedPassword;
-        await user.save();
-
-        res.status(200).json({ message: 'Contraseña restablecida exitosamente' });
-    } catch (error) {
-        logger.error('Error al restablecer la contraseña:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
+    })(req, res, next);
 };
 
-exports.logoutUser = (req, res) => {
+// Función para cerrar sesión
+const logoutUser = (req, res) => {
     req.logout((err) => {
         if (err) {
-            logger.error('Error al cerrar sesión:', err);
-            return res.status(500).json({ error: 'Error interno del servidor' });
+            console.error('Error al cerrar sesión:', err);
+            return res.status(500).json({ error: 'Error al cerrar sesión' });
         }
         res.redirect('/auth/login');
     });
 };
 
-exports.githubAuth = passport.authenticate('github');
+// Función para cambiar rol de un usuario
+const updateUserRole = async (req, res) => {
+    try {
+        const { uid } = req.params;
+        const { role } = req.body;
 
-exports.githubAuthCallback = passport.authenticate('github', { 
-    failureRedirect: '/',
-    successRedirect: '/products'
-});
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        if (role !== 'user' && role !== 'premium') {
+            return res.status(400).json({ error: 'Invalid role' });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(uid, { role }, { new: true });
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User role updated successfully', user: updatedUser });
+    } catch (error) {
+        logger.error('Error al cambiar el rol del usuario:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+};
+
+module.exports = {
+    showRegisterForm,
+    registerUser,
+    showLoginForm,
+    loginUser,
+    logoutUser,
+    updateUserRole
+};
 

@@ -10,7 +10,6 @@ class ProductDao {
         price: productData.price,
         category: productData.category,
       });
-  
       await newProduct.save();
       
       return newProduct; 
