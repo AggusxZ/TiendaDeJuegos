@@ -35,11 +35,21 @@ const addToCart = async (req, res) => {
   try {
     const { pid, cid } = req.params;
 
-    if (!cid) { 
+    if (!cid) {
       return res.status(400).json({ error: 'Cart ID is required' });
     }
 
-    await cartRepository.addToCart(pid, cid); 
+    const product = await Product.findById(pid);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    if (req.user.role === 'premium' && product.owner === req.user.email) {
+      return res.status(403).json({ error: 'Premium users cannot add their own products to the cart' });
+    }
+
+    await cartRepository.addToCart(pid, cid);
 
     return res.status(201).json({ message: 'Product added to cart' });
   } catch (error) {

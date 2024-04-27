@@ -1,34 +1,44 @@
 // Middleware para verificar si un usuario está autenticado
 const isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
-      return next(); // Continuar si el usuario está autenticado
+      return next(); 
   }
-  // Devolver un código de estado 401 y un mensaje JSON
-  return res.status(401).json({ error: 'Authentication required' });
+  
+  return res.redirect('/auth/login');
 };
 
 // Middleware para verificar si un usuario es un administrador
 const isAdmin = (req, res, next) => {
   if (req.isAuthenticated() && req.user.role === 'admin') {
-      return next(); // Continuar si el usuario es un administrador
+      return next(); 
   }
-  // Devolver un código de estado 403 y un mensaje JSON
+  
   return res.status(403).json({ error: 'Admin role required' });
 };
 
 // Middleware para verificar si un usuario es un usuario normal
 const isUser = (req, res, next) => {
   if (req.isAuthenticated() && req.user.role === 'usuario') {
-      return next(); // Continuar si el usuario es un usuario normal
+      return next(); 
   }
-  // Devolver un código de estado 403 y un mensaje JSON
+  
   return res.status(403).json({ error: 'User role required' });
+};
+
+// Middleware para verificar si un usuario es premium
+const isPremium = (req, res, next) => {
+  if (req.isAuthenticated() && req.user.role === 'premium') {
+    return next(); 
+  }
+  
+  return res.status(403).json({ error: 'Premium role required' });
 };
 
 module.exports = {
   isAuthenticated,
   isAdmin,
-  isUser
+  isUser,
+  isPremium
 };
 
   

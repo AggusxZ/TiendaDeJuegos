@@ -11,7 +11,7 @@ const sendPasswordResetEmail = async (email, resetToken) => {
     },
   });
 
-  const resetLink = `${configApp.app_url}/auth/password/reset?token=${resetToken}`;
+  const resetLink = `${configApp.app_url}/auth/password-reset/${resetToken}`;
 
   const mailOptions = {
     from: configApp.gmail_user,

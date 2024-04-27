@@ -1,0 +1,94 @@
+/auth/register:
+  post:
+    summary: Registro de usuario
+    tags:
+      - Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              firstName:
+                type: string
+              lastName:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+    responses:
+      '200':
+        description: Usuario registrado exitosamente.
+      '400':
+        description: Error en la solicitud debido a datos inválidos.
+      '500':
+        description: Error interno del servidor.
+
+/auth/login:
+  post:
+    summary: Inicio de sesión
+    tags:
+      - Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+    responses:
+      '200':
+        description: Inicio de sesión exitoso. Se devuelve un token JWT.
+      '401':
+        description: Credenciales inválidas.
+      '500':
+        description: Error interno del servidor.
+
+/auth/logout:
+  get:
+    summary: Cierre de sesión
+    tags:
+      - Authentication
+    responses:
+      '200':
+        description: Cierre de sesión exitoso.
+      '500':
+        description: Error interno del servidor.
+
+/users/premium/{uid}:
+  put:
+    summary: Actualización del rol de usuario
+    tags:
+      - Authentication
+    parameters:
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+        description: ID del usuario cuyo rol se desea actualizar.
+      - in: body
+        name: role
+        required: true
+        schema:
+          type: object
+          properties:
+            role:
+              type: string
+    responses:
+      '200':
+        description: Rol de usuario actualizado exitosamente.
+      '400':
+        description: Error en la solicitud debido a un rol inválido.
+      '403':
+        description: Acceso no autorizado.
+      '404':
+        description: Usuario no encontrado.
+      '500':
+        description: Error interno del servidor.

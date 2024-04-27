@@ -3,7 +3,6 @@ const path = require('path');
 const http = require('http');
 const socketIO = require('socket.io');
 const exphbs = require('express-handlebars');
-const passport = require('passport');
 const session = require('express-session');
 const { connectDB, configApp } = require('./config/config');
 const customPassport = require('./config/passportConfig');

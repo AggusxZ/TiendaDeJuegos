@@ -1,7 +1,6 @@
 const express = require('express');
 const cartsRouter = express.Router();
 const cartController = require('../controllers/cart/cartController');
-const { isUser } = require('../middlewares/authorizationMiddleware');
 
 // Ruta para mostrar la vista del carrito con el ID del carrito como parámetro
 cartsRouter.get('/view/:cartId', cartController.viewCart);

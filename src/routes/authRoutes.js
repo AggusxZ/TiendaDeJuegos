@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const { showRegisterForm, registerUser, showLoginForm, loginUser, logoutUser } = require('../controllers/auth/authController');
-const passport = require('passport');
 const { isAuthenticated, isAdmin, isUser } = require('../middlewares/authorizationMiddleware');
+const { requestPasswordReset, resetPassword } = require('../controllers/auth/passwordResetController');
 
 // Mostrar formulario de registro
 router.get('/register', showRegisterForm);
@@ -26,17 +26,31 @@ router.post('/login', loginUser);
 router.get('/logout', logoutUser);
 router.post('/logout', logoutUser);
 
-// Ejemplo de ruta protegida que requiere autenticación
+// Ruta para solicitar el restablecimiento de contraseña
+router.get('/password-reset', (req, res) => {
+    res.render('password_reset_request');
+});
+
+router.post('/password-reset/request', requestPasswordReset);
+
+// Ruta para restablecer la contraseña
+router.get('/password-reset/:token', (req, res) => {
+    const token = req.params.token;
+    res.render('password_reset_form', { token });
+});
+
+router.post('/password-reset/reset', resetPassword);
+
 router.get('/profile', isAuthenticated, (req, res) => {
     res.send('Perfil del usuario');
 });
 
-// Ejemplo de ruta protegida que requiere permisos de administrador
+
 router.get('/admin', isAdmin, (req, res) => {
     res.send('Panel de administración');
 });
 
-// Ejemplo de ruta protegida que requiere permisos de usuario
+
 router.get('/user', isUser, (req, res) => {
     res.send('Panel de usuario');
 });

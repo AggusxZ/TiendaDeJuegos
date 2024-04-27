@@ -57,25 +57,28 @@ const showLoginForm = (req, res) => {
     res.render('login');
 };
 
+// Función para actualizar la última conexión del usuario
+const updateLastConnection = async (user) => {
+    if (user) {
+        user.last_connection = new Date();
+        await user.save();
+    }
+};
+
 // Función para iniciar sesión
 const loginUser = (req, res, next) => {
     passport.authenticate('local', async (err, user, info) => {
         try {
             if (err) { return next(err); }
             if (!user) {
-                req.flash('error', 'Credenciales inválidas');
                 return res.redirect('/auth/login');
             }
             req.logIn(user, async (err) => {
                 if (err) { return next(err); }
-                const redirectTo = req.session.returnTo || '/products';
-                delete req.session.returnTo;
+                
+                await updateLastConnection(user);
 
-                // Generar y firmar el token JWT
-                const token = jwt.sign({ email: user.email, role: user.role }, 'f6a455cc20c82642fee4a728fec77d7f4fa8859fd5cecdec25cf0feb76864f7', { expiresIn: '1h' });
-
-                // Enviar el token como parte de la respuesta
-                res.json({ token, redirectTo });
+                res.redirect('/products');
             });
         } catch (error) {
             console.error('Error al iniciar sesión:', error);
@@ -86,13 +89,21 @@ const loginUser = (req, res, next) => {
 
 // Función para cerrar sesión
 const logoutUser = (req, res) => {
-    req.logout((err) => {
+    req.logout(async (err) => {
         if (err) {
             console.error('Error al cerrar sesión:', err);
             return res.status(500).json({ error: 'Error al cerrar sesión' });
         }
+        
+        await updateLastConnection(req.user);
+
         res.redirect('/auth/login');
     });
+};
+
+// Función para verificar si el usuario ha subido los documentos requeridos
+const hasRequiredDocuments = (user) => {
+    return user.documents && user.documents.identification && user.documents.addressProof && user.documents.bankStatement;
 };
 
 // Función para cambiar rol de un usuario
@@ -100,7 +111,7 @@ const updateUserRole = async (req, res) => {
     try {
         const { uid } = req.params;
         const { role } = req.body;
-
+        
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Unauthorized' });
         }
@@ -113,6 +124,10 @@ const updateUserRole = async (req, res) => {
 
         if (!updatedUser) {
             return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (role === 'premium' && !hasRequiredDocuments(updatedUser)) {
+            return res.status(400).json({ error: 'El usuario no ha subido todos los documentos requeridos' });
         }
 
         res.status(200).json({ message: 'User role updated successfully', user: updatedUser });

@@ -105,10 +105,13 @@ const addProduct = async (req, res) => {
   try {
     const { name, category, price } = req.body;
 
+    const owner = req.user && req.user.premium ? req.user.email : 'admin';
+
     const newProduct = {
       name,
       category,
       price,
+      owner
     };
 
     await productRepository.addProduct(newProduct);
@@ -138,8 +141,24 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    await productRepository.deleteProduct(id);
-    return res.status(200).json({ message: 'Product deleted successfully' });
+
+    const product = await productRepository.getProductById(id);
+
+    if (req.user && req.user.premium && product.owner === req.user.email) {
+    
+      await productRepository.deleteProduct(id);
+      return res.status(200).json({ message: 'Product deleted successfully' });
+    }
+
+   
+    if (req.user && req.user.isAdmin) {
+      
+      await productRepository.deleteProduct(id);
+      return res.status(200).json({ message: 'Product deleted successfully' });
+    }
+
+   
+    return res.status(403).json({ error: 'Unauthorized' });
   } catch (error) {
     errorHandler.handleProductError(error, res);
   }

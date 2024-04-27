@@ -5,7 +5,8 @@ const { generateResetToken } = require('../../utils/tokens');
 const { sendPasswordResetEmail } = require('../../utils/email');
 const { logger } = require('../../utils/logger');
 
-exports.requestPasswordReset = async (req, res) => {
+// Función para solicitar restablecimiento de contraseña
+const requestPasswordReset = async (req, res) => {
     try {
         const { email } = req.body;
 
@@ -25,7 +26,8 @@ exports.requestPasswordReset = async (req, res) => {
     }
 };
 
-exports.resetPassword = async (req, res) => {
+// Función para restablecer la contraseña
+const resetPassword = async (req, res) => {
     try {
         const { token, newPassword } = req.body;
         
@@ -58,5 +60,11 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
+
+module.exports = {
+    requestPasswordReset,
+    resetPassword
+};
+
 
 
