@@ -7,11 +7,12 @@ const renderProductsView = async (req, res) => {
   try {
     const user = req.user;
     if (!user) {
-      /* logger.error('Usuario no autenticado. Redirigiendo a la página de inicio de sesión.'); */
       return res.redirect('/auth/login');
     }
 
-    /* logger.info('Usuario autenticado:', user); */
+    const cartId = user.cart;
+
+   /*  logger.info('Usuario autenticado:', user); */
 
     const { limit = 10, page = 1, sort, query, format } = req.query;
     const products = await productRepository.getProducts();
@@ -33,6 +34,7 @@ const renderProductsView = async (req, res) => {
     const paginatedProducts = filteredProducts.slice(startIdx, endIdx);
 
     const simplifiedProducts = paginatedProducts.map(product => ({
+      _id: product._id,
       name: product.name,
       price: product.price,
       category: product.category,
@@ -58,7 +60,7 @@ const renderProductsView = async (req, res) => {
     if (format === 'json') {
       return res.json(response);
     } else {
-      return res.render('products', { products: simplifiedProducts, response, user });
+      return res.render('products', { products: simplifiedProducts, response, user, cartId });
     }
   } catch (error) {
     logger.error('Internal Server Error:', error);
@@ -136,7 +138,6 @@ const updateProduct = async (req, res) => {
     errorHandler.handleProductError(error, res);
   }
 };
-
 
 const deleteProduct = async (req, res) => {
   try {

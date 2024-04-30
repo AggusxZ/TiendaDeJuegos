@@ -4,7 +4,22 @@ const CartDTO = require('../dtos/cartDto');
 const mongoose = require('mongoose');
 const { logger } = require('../utils/logger');
 
-const addToCart = async (productId, cartId) => {
+
+const createCart = async (userId) => {
+  try {
+    const newCart = new Cart({ 
+      owner: userId, 
+      products: [] 
+    });
+    await newCart.save();
+    return newCart;
+  } catch (error) {
+    logger.error('Error al crear el carrito:', error);
+    throw error;
+  }
+};
+
+const addToCart = async (productId, cartId, userId) => {
   try {
     logger.debug('ID del producto recibido:', productId);
 
@@ -15,6 +30,7 @@ const addToCart = async (productId, cartId) => {
 
     if (!cart) {
       cart = new Cart({ 
+        owner: userId, 
         products: [] 
       });
     }
@@ -96,7 +112,8 @@ module.exports = {
   addToCart,
   getCartById,
   getCartProducts,
-  getCarts
+  getCarts,
+  createCart
 };
 
 

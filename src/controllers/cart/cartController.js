@@ -1,16 +1,25 @@
 const cartRepository = require('../../repositories/cartRepository');
 const Product = require('../../models/product.model');
 const Ticket = require('../../models/ticket.model');
+const User = require('../../models/user.model');
 const { logger } = require('../../utils/logger');
 
 
 const createCart = async (req, res) => {
   try {
+    const userId = req.user._id; 
+    
+    const newCart = await cartRepository.createCart(userId); 
+
     const productId = req.body.productId || null;
-    const newCart = await cartRepository.addToCart(productId);
-    return res.status(201).json({ message: 'New cart created', cartId: newCart._id }); 
+
+    await cartRepository.addToCart(productId, newCart._id, userId);
+
+    await User.findByIdAndUpdate(userId, { cart: newCart._id });
+
+    return res.status(201).json({ message: 'New cart created', cartId: newCart._id });
   } catch (error) {
-    logger.error('Error creating cart:', error); 
+    logger.error('Error creating cart:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -35,21 +44,38 @@ const addToCart = async (req, res) => {
   try {
     const { pid, cid } = req.params;
 
+    if (!req.isAuthenticated()) {
+      logger.info('User not authenticated');
+      return res.redirect('/auth/login');
+    }
+
+    const userId = req.user._id;
+
+    if (!req.user.cart || (cid && !req.user.cart.equals(cid))) {
+      logger.info('Cart does not belong to the user');
+      return res.status(403).json({ error: 'Forbidden: Cart does not belong to the user' });
+    }
+
     if (!cid) {
-      return res.status(400).json({ error: 'Cart ID is required' });
+      logger.info('No cart ID provided, creating new cart');
+      const newCart = await cartRepository.createCart(userId);
+      return res.status(201).json({ message: 'New cart created', cartId: newCart._id });
     }
 
     const product = await Product.findById(pid);
 
     if (!product) {
+      logger.info('Product not found');
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    if (req.user.role === 'premium' && product.owner === req.user.email) {
-      return res.status(403).json({ error: 'Premium users cannot add their own products to the cart' });
-    }
+    // Verificar si el producto pertenece al usuario (opcional)
+    // if (req.user.role === 'premium' && product.owner === req.user.email) {
+    //   return res.status(403).json({ error: 'Premium users cannot add their own products to the cart' });
+    // }
 
-    await cartRepository.addToCart(pid, cid);
+    await cartRepository.addToCart(pid, cid, userId.toString());
+    logger.info('Product added to cart');
 
     return res.status(201).json({ message: 'Product added to cart' });
   } catch (error) {

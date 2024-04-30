@@ -15,7 +15,7 @@ cartsRouter.post('/purchase/:cid', cartController.purchaseCart);
 cartsRouter.post('/:cid/:pid', cartController.addToCart);
 
 // Ruta para crear un nuevo carrito
-cartsRouter.post('/', cartController.createCart);
+cartsRouter.post('/create', cartController.createCart);
 
 
 module.exports = cartsRouter;

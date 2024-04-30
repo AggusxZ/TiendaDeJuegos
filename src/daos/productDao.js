@@ -22,13 +22,17 @@ class ProductDao {
   async getProducts() {
     try {
         const products = await Product.find({}, '_id name price category');
-        const productDTOs = products.map(product => new ProductDTO(product.name, product.price, product.category));
+        const productDTOs = products.map(product => {
+            const productDTO = new ProductDTO(product.name, product.price, product.category);
+            productDTO._id = product._id;
+            return productDTO;
+        });
         return productDTOs;
     } catch (error) {
         logger.error('Error al obtener los productos:', error);
         return [];
     }
-  } 
+  }
 
   async getProductById(id) {
     try {

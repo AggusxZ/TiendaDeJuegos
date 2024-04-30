@@ -1,5 +1,5 @@
 paths:
-  /carts:
+  /carts/create:
     post:
       summary: Crear un nuevo carrito
       tags: 

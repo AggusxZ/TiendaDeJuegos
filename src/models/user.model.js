@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   last_name: String,
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  cart: { type: mongoose.Schema.Types.ObjectId, ref: 'Carts' },
+  cart: { type: mongoose.Schema.Types.ObjectId, ref: 'Cart' },
   role: { type: String, default: 'usuario' },
   documents: [
     {

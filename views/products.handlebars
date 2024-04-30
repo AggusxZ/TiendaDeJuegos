@@ -24,6 +24,9 @@
                 <p>Nombre: {{this.name}}</p>
                 <p>Precio: {{this.price}}</p>
                 <p>Categoría: {{this.category}}</p>
+                <form action="/carts/{{../cartId}}/{{this._id}}" method="post">
+                    <button type="submit">Agregar al Carrito</button>
+                </form>
             </li>
         {{/each}} 
     </ul>
@@ -38,5 +41,8 @@
     </div>
 </body>
 </html>
+
+
+
 
 
