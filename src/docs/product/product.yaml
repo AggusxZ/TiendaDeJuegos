@@ -88,9 +88,6 @@ components:
     Product:
       type: object
       properties:
-        _id:
-          type: string
-          description: ID autogenerados de Mongo.
         name:
           type: string
           description: Nombre del producto.
@@ -101,7 +98,6 @@ components:
           type: string
           description: Categoría a la que pertenece el producto.
       example:
-        _id: ObjectId("189667z9d12h16252w23f786")
         name: Tomb Raider
         price: 1200
         category: Aventuras

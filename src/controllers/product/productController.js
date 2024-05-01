@@ -142,23 +142,13 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-
     const product = await productRepository.getProductById(id);
 
-    if (req.user && req.user.premium && product.owner === req.user.email) {
-    
+    if (req.user && req.user.role === 'admin') { 
       await productRepository.deleteProduct(id);
       return res.status(200).json({ message: 'Product deleted successfully' });
     }
 
-   
-    if (req.user && req.user.isAdmin) {
-      
-      await productRepository.deleteProduct(id);
-      return res.status(200).json({ message: 'Product deleted successfully' });
-    }
-
-   
     return res.status(403).json({ error: 'Unauthorized' });
   } catch (error) {
     errorHandler.handleProductError(error, res);

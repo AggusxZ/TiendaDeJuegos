@@ -19,6 +19,7 @@ const chatRouter = require('./routes/chatRoutes');
 const mockingRouter = require('./routes/mockingRoutes');
 const pruebaRouter = require('./routes/pruebaRoutes')
 const userRouter = require('./routes/userRoutes');
+const ticketRouter = require('./routes/ticketRoutes');
 
 const swaggerJsDoc = require('swagger-jsdoc')
 const swaggerUiExpress = require('swagger-ui-express')
@@ -77,7 +78,17 @@ const hbs = exphbs.create({
     },
     multiply: function(a, b) {
       return a * b;
-    }
+    },
+    formatDate: function (date) {
+      
+      if (date && date instanceof Date) {
+          
+          return date.toLocaleString(); 
+      } else {
+          
+          return '';
+      }
+  }
   },
 });
 
@@ -97,6 +108,7 @@ app.use('/', viewsRouter);
 app.use('/mocking', mockingRouter);
 app.use('/pruebas', pruebaRouter)
 app.use('/users', userRouter);
+app.use('/ticket', ticketRouter);
 
 // Creación del servidor HTTP
 const server = http.createServer(app);

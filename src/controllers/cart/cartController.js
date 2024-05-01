@@ -153,9 +153,23 @@ const purchaseCart = async (req, res) => {
       cart.products = cart.products.filter(item => !productsNotPurchased.includes(item.product._id));
       await cart.save();
     }
-    return res.status(200).json({ message: 'Purchase completed successfully', productsNotPurchased });
+    return res.redirect(`/ticket/${ticket._id}`);
   } catch (error) {
     logger.error('Error purchasing cart:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const viewTicket = async (req, res) => {
+  try {
+    const ticketId = req.params.ticketId;
+    const ticket = await Ticket.findById(ticketId).lean();
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+    return res.render('ticket', { ticket });
+  } catch (error) {
+    logger.error('Error viewing ticket:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -185,6 +199,7 @@ module.exports = {
   addToCart,
   viewCart,
   purchaseCart,
+  viewTicket
 };
 
 
