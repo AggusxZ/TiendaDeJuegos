@@ -86,7 +86,7 @@ const addToCart = async (req, res) => {
 
 const viewCart = async (req, res) => {
   try {
-    const cartId = req.params.cartId; 
+    const cartId = req.params.cid; 
     const cartProductsDTO = await cartRepository.getCartProducts(cartId);
     logger.info('Cart Products:', JSON.stringify(cartProductsDTO, null, 2));
 
@@ -105,7 +105,7 @@ const viewCart = async (req, res) => {
       total += product.price * product.quantity;
     });
 
-    return res.render('cart', { cart: { products: cartProductsDTO.cartProducts, total: total } });
+    return res.render('cart', { cart: { products: cartProductsDTO.cartProducts, total: total, cartId: cartId } });
   } catch (error) {
     logger.error('Error en viewCart:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
@@ -120,13 +120,12 @@ const purchaseCart = async (req, res) => {
       return res.status(404).json({ error: 'Cart not found' });
     }
 
-    // Verificar si cart.products está definido
     if (!cart.products) {
       return res.status(400).json({ error: 'Cart products not found' });
     }
 
     let productsNotPurchased = [];
-    // Verificar el stock y actualizar el stock del producto
+    
     for (const item of cart.products) {
       if (!item.productId) {
         return res.status(400).json({ error: 'Product not found in cart' });
@@ -141,7 +140,7 @@ const purchaseCart = async (req, res) => {
         await product.save();
       }
     }
-    // Crear un nuevo ticket para la compra
+    
     const ticket = new Ticket({
       code: generateUniqueCode(), 
       purchase_datetime: new Date(),
@@ -149,7 +148,7 @@ const purchaseCart = async (req, res) => {
       purchaser: req.user.email,
     });
     await ticket.save();
-    // Si hay productos que no se pudieron comprar, dejarlos en el carrito
+    
     if (productsNotPurchased.length > 0) {
       cart.products = cart.products.filter(item => !productsNotPurchased.includes(item.product._id));
       await cart.save();

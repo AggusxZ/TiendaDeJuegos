@@ -19,7 +19,7 @@
     }
   </style>
 </head>
-<body>
+<br>
   <h1>Carrito de Compras</h1>
   <table>
     <thead>
@@ -47,6 +47,10 @@
       </tr>
     </tfoot>
   </table>
+  </br>
+  <form action="/carts/purchase/{{cart.cartId}}" method="POST">
+    <button type="submit">Comprar Carrito</button>
+  </form>
 </body>
 </html>
 

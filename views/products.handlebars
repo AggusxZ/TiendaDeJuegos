@@ -31,6 +31,10 @@
         {{/each}} 
     </ul>
 
+    <form action="/carts/view/{{cartId}}" method="get">
+        <button type="submit">Ver Carrito</button>
+    </form>
+
     <div>
         {{#if hasNextPage}}
             <a href="{{nextLink}}">Siguiente</a>
