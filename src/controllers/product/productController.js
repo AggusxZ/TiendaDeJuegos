@@ -129,6 +129,11 @@ const updateProduct = async (req, res) => {
     const { id } = req.params;
     const updatedProductData = req.body;
 
+    // Verificar si el ID tiene el formato correcto de ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid product ID' });
+    }
+
     logger.info("ID del producto:", id);
     logger.info("Datos actualizados del producto:", updatedProductData);
 
