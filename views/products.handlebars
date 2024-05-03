@@ -18,6 +18,14 @@
     </form>
     {{/if}}
 
+    {{#if cartId}}
+        <p>Ya tienes un carrito creado.</p>
+    {{else}}
+        <form action="/carts/create" method="post">
+            <button type="submit">Crear Carrito</button>
+        </form>
+    {{/if}}
+    
     <ul>
         {{#each products}}
             <li>
@@ -45,6 +53,7 @@
     </div>
 </body>
 </html>
+
 
 
 

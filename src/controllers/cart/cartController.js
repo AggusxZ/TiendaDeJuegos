@@ -51,15 +51,15 @@ const addToCart = async (req, res) => {
 
     const userId = req.user._id;
 
-    if (!req.user.cart || (cid && !req.user.cart.equals(cid))) {
-      logger.info('Cart does not belong to the user');
-      return res.status(403).json({ error: 'Forbidden: Cart does not belong to the user' });
-    }
-
     if (!cid) {
       logger.info('No cart ID provided, creating new cart');
       const newCart = await cartRepository.createCart(userId);
       return res.status(201).json({ message: 'New cart created', cartId: newCart._id });
+    }
+    
+    if (!req.user.cart || (cid && !req.user.cart.equals(cid))) {
+      logger.info('Cart does not belong to the user');
+      return res.status(403).json({ error: 'Forbidden: Cart does not belong to the user' });
     }
 
     const product = await Product.findById(pid);

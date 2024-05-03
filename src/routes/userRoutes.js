@@ -1,9 +1,9 @@
 const express = require('express');
 const multer = require('multer');
 const router = express.Router();
-const { isAuthenticated } = require('../middlewares/authorizationMiddleware');
+const { isAuthenticated, isAdmin } = require('../middlewares/authorizationMiddleware');
 const { updateUserRole } = require('../controllers/auth/authController'); 
-const { uploadDocument, checkDocumentsUploaded } = require('../controllers/user/userController');
+const { uploadDocument, checkDocumentsUploaded, getUsers, deleteInactiveUsers, deleteUser } = require('../controllers/user/userController');
 
 
 // Configurar Multer para guardar archivos en carpetas diferentes según su tipo
@@ -34,6 +34,16 @@ router.get('/:uid/check-documents', isAuthenticated, checkDocumentsUploaded);
 
 // Endpoint para actualizar a usuario premium
 router.put('/premium/:uid', isAuthenticated, updateUserRole); 
+
+// Ruta para obtener todos los usuarios
+router.get('/', isAdmin, getUsers);
+
+// Endpoint para eliminar un usuario
+router.delete('/:uid', isAdmin, deleteUser);
+
+// Ruta para eliminar usuarios inactivos
+router.delete('/', isAdmin, deleteInactiveUsers);
+
 
 module.exports = router;
 
